@@ -4,7 +4,6 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from scipy.integrate import odeint
 
-# ─── Page config ───────────────────────────────────────────────────────────────
 st.set_page_config(
     page_title="Wave Energy Converter Sim",
     page_icon="🌊",
@@ -12,7 +11,7 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# ─── Custom CSS ────────────────────────────────────────────────────────────────
+
 st.markdown("""
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;600&display=swap');
@@ -102,7 +101,6 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 
-# ─── Physics Model ─────────────────────────────────────────────────────────────
 def wave_excitation_force(t, H_wave, T_wave, F_exc_coeff):
     """Sinusoidal wave excitation force."""
     omega = 2 * np.pi / T_wave
@@ -143,22 +141,16 @@ def run_simulation(params, t_end=60.0, dt=0.02):
     z     = sol[:, 0]
     z_dot = sol[:, 1]
 
-    # PTO power
     P_pto = params['b_pto'] * z_dot**2
 
-    # Spring cylinder force
     F_spring = params['k_pto'] * z
 
-    # Damping cylinder force
     F_damp = params['b_pto'] * z_dot
 
-    # Accumulator pressure proxy (normalised)
     P_acc = np.abs(F_spring) / (params['k_pto'] + 1e-9) * 10
 
     return t, z, z_dot, P_pto, F_spring, F_damp, P_acc
 
-
-# ─── Sidebar Parameters ────────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown('<div class="section-title">🌊 Wave Input</div>', unsafe_allow_html=True)
     H_wave   = st.slider("Wave Height H (m)",    0.5, 5.0, 2.0, 0.1)
@@ -189,10 +181,8 @@ params = dict(
     k_pto=k_pto, b_pto=b_pto, k_moor=k_moor,
 )
 
-# ─── Run ───────────────────────────────────────────────────────────────────────
 t, z, z_dot, P_pto, F_spring, F_damp, P_acc = run_simulation(params, t_end=t_end)
 
-# ─── Header ───────────────────────────────────────────────────────────────────
 st.markdown("""
 <div style="margin-bottom:1.2rem">
   <div class="main-title">Wave Energy Converter</div>
@@ -206,7 +196,6 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# ─── KPI Metrics ──────────────────────────────────────────────────────────────
 avg_power  = np.mean(P_pto)
 peak_power = np.max(P_pto)
 max_disp   = np.max(np.abs(z))
@@ -220,11 +209,11 @@ c4.metric("Max Velocity",    f"{max_vel:.3f} m/s")
 
 st.markdown("<hr>", unsafe_allow_html=True)
 
-# ─── Plot colours ─────────────────────────────────────────────────────────────
+
 CLR_WAVE   = "#64b5f6"   # blue  — wave / displacement
-CLR_VEL    = "#4dd0e1"   # cyan  — velocity
-CLR_SPRING = "#ef5350"   # red   — spring force  (matches Simulink pink)
-CLR_DAMP   = "#ffd54f"   # amber — damping force (matches Simulink yellow)
+CLR_VEL    = "#4dd0e1"   # acikmavi  — velocity
+CLR_SPRING = "#ef5350"   # red   — spring force 
+CLR_DAMP   = "#ffd54f"   # sari — damping force 
 CLR_POWER  = "#66bb6a"   # green — power
 CLR_ACC    = "#ab47bc"   # purple — accumulator
 BG         = "#0b1120"
@@ -243,7 +232,6 @@ def style_fig(fig):
     fig.update_yaxes(gridcolor=GRID, zerolinecolor=GRID, linecolor=GRID)
     return fig
 
-# ─── Row 1: Displacement + Velocity ──────────────────────────────────────────
 st.markdown('<div class="section-title">Buoy Motion — PTO_Velocity / WT_PTO</div>', unsafe_allow_html=True)
 fig1 = make_subplots(specs=[[{"secondary_y": True}]])
 fig1.add_trace(go.Scatter(x=t, y=z,     name="Displacement z (m)",  line=dict(color=CLR_WAVE, width=2)), secondary_y=False)
@@ -255,7 +243,7 @@ fig1.update_layout(title="Buoy Displacement & Velocity", height=280)
 style_fig(fig1)
 st.plotly_chart(fig1, use_container_width=True)
 
-# ─── Row 2: Spring + Damping forces side by side ──────────────────────────────
+
 col_l, col_r = st.columns(2)
 
 with col_l:
@@ -280,7 +268,7 @@ with col_r:
     style_fig(fig3)
     st.plotly_chart(fig3, use_container_width=True)
 
-# ─── Row 3: PTO Power + Phase Portrait ────────────────────────────────────────
+
 col3, col4 = st.columns(2)
 
 with col3:
@@ -318,7 +306,7 @@ with col4:
     style_fig(fig5)
     st.plotly_chart(fig5, use_container_width=True)
 
-# ─── Row 4: Accumulator pressure proxy ────────────────────────────────────────
+
 st.markdown('<div class="section-title">Spring Accumulator Pressure Proxy — ULS_Accumulator</div>', unsafe_allow_html=True)
 fig6 = go.Figure()
 fig6.add_trace(go.Scatter(x=t, y=P_acc, name="Acc. Pressure (bar equiv.)",
@@ -329,7 +317,7 @@ fig6.update_layout(title="Accumulator Pressure (Proportional to Spring Force)",
 style_fig(fig6)
 st.plotly_chart(fig6, use_container_width=True)
 
-# ─── Footer ───────────────────────────────────────────────────────────────────
+
 st.markdown("""
 <hr>
 <div style="font-family:'Space Mono',monospace; font-size:0.65rem; color:#334155; text-align:center; padding:8px 0">
